@@ -2,7 +2,7 @@ import { NotImplemented, run } from "aoc-copilot";
 
 type Level = number;
 type Report = Level[];
-type Change = [Level, Level];
+type TupleChange = [Level, Level];
 type LevelDirection = "increasing" | "decreasing" | "same";
 
 async function solve(
@@ -15,37 +15,7 @@ async function solve(
 }
 
 const part1 = async (inputs: string[]): Promise<number | string> => {
-  const reports: Report[] = inputs.map((input) =>
-    input.split(/\s+/).map(Number),
-  );
-
-  const isSafeReport = (report: Report) => {
-    const changes: Change[] = report.slice(1).map((level: Level, index) => {
-      const previousLevel = report[index];
-      return [previousLevel, level];
-    });
-
-    const levelDirection = (change: Change): LevelDirection => {
-      const [previousLevel, level] = change;
-      if (previousLevel < level) return "increasing";
-      if (previousLevel > level) return "decreasing";
-      return "same";
-    };
-
-    const initialLevelDirection = levelDirection(changes[0]);
-    const isSameDirection = (change: Change) =>
-      levelDirection(change) === initialLevelDirection;
-
-    const isRateOfChangeAcceptable = (change: Change): boolean => {
-      const [previousLevel, level] = change;
-      const rateOfChange = Math.abs(previousLevel - level);
-      return 0 < rateOfChange && rateOfChange < 4;
-    };
-
-    return changes.every(
-      (change) => isSameDirection(change) && isRateOfChangeAcceptable(change),
-    );
-  };
+  const reports: Report[] = readReports(inputs);
 
   const safeReports = reports.filter(isSafeReport).length;
 
@@ -53,7 +23,56 @@ const part1 = async (inputs: string[]): Promise<number | string> => {
 };
 
 const part2 = async (inputs: string[]): Promise<number | string> => {
-  throw new NotImplemented("Not implemented");
+  const reports: Report[] = readReports(inputs);
+  const isSafeReportWithDampener = (report: Report) => {
+    if (isSafeReport(report)) return true;
+
+    return report
+      .map((_, i) => [...report.slice(0, i), ...report.slice(i + 1)])
+      .some(isSafeReport);
+  };
+  const countSafeReportsWithDampener = reports.filter(
+    isSafeReportWithDampener,
+  ).length;
+
+  return countSafeReportsWithDampener;
+};
+
+const readReports = (inputs: string[]) =>
+  inputs.map((input) => input.split(/\s+/).map(Number));
+
+const isRateOfChangeAcceptable = (change: TupleChange): boolean => {
+  const [previousLevel, level] = change;
+  const rateOfChange = Math.abs(previousLevel - level);
+  return 0 < rateOfChange && rateOfChange < 4;
+};
+
+const levelDirection = (change: TupleChange): LevelDirection => {
+  const [previousLevel, level] = change;
+  if (previousLevel < level) return "increasing";
+  if (previousLevel > level) return "decreasing";
+  return "same";
+};
+const isSameAndCorrectDirection = (
+  change: TupleChange,
+  initialLevelDirection: LevelDirection,
+) =>
+  levelDirection(change) !== "same" &&
+  levelDirection(change) === initialLevelDirection;
+
+const isSafeReport = (report: Report) => {
+  const changes: TupleChange[] = report.slice(1).map((level: Level, index) => {
+    const previousLevel = report[index];
+    return [previousLevel, level];
+  });
+
+  const initialLevelDirection = levelDirection(changes[0]);
+
+  return changes.every(
+    (change) =>
+      isSameAndCorrectDirection(change, initialLevelDirection) &&
+      isRateOfChangeAcceptable(change),
+  );
 };
 
 run(__filename, solve);
