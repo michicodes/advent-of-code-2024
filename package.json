@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "day1": "ts-node puzzles/aoc2401.ts"
+    "day1": "ts-node puzzles/aoc2401.ts",
+    "day2": "ts-node puzzles/aoc2402.ts"
   },
   "keywords": [],
   "author": "",
