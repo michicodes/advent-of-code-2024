@@ -2,8 +2,6 @@ import { NotImplemented, run } from "aoc-copilot";
 
 type Level = number;
 type Report = Level[];
-type TupleChange = [Level, Level];
-type LevelDirection = "increasing" | "decreasing" | "same";
 
 async function solve(
   inputs: string[], // Contents of the example or actual inputs
@@ -24,13 +22,7 @@ const part1 = async (inputs: string[]): Promise<number | string> => {
 
 const part2 = async (inputs: string[]): Promise<number | string> => {
   const reports: Report[] = readReports(inputs);
-  const isSafeReportWithDampener = (report: Report) => {
-    if (isSafeReport(report)) return true;
 
-    return report
-      .map((_, i) => [...report.slice(0, i), ...report.slice(i + 1)])
-      .some(isSafeReport);
-  };
   const countSafeReportsWithDampener = reports.filter(
     isSafeReportWithDampener,
   ).length;
@@ -41,38 +33,37 @@ const part2 = async (inputs: string[]): Promise<number | string> => {
 const readReports = (inputs: string[]) =>
   inputs.map((input) => input.split(/\s+/).map(Number));
 
-const isRateOfChangeAcceptable = (change: TupleChange): boolean => {
-  const [previousLevel, level] = change;
-  const rateOfChange = Math.abs(previousLevel - level);
-  return 0 < rateOfChange && rateOfChange < 4;
+const isIncreasing = (level: Level, levelToCompare: Level): boolean =>
+  levelToCompare - level > 0 && levelToCompare - level <= 3;
+const isDecreasing = (level: Level, levelToCompare: Level): boolean =>
+  level - levelToCompare > 0 && level - levelToCompare <= 3;
+
+const isSafeSequence = (
+  report: Report,
+  checkFn: (level: Level, levelToCompare: Level) => boolean,
+): boolean => {
+  for (let i = 1; i < report.length; i++) {
+    if (!checkFn(report[i - 1], report[i])) return false;
+  }
+  return true;
 };
 
-const levelDirection = (change: TupleChange): LevelDirection => {
-  const [previousLevel, level] = change;
-  if (previousLevel < level) return "increasing";
-  if (previousLevel > level) return "decreasing";
-  return "same";
-};
-const isSameAndCorrectDirection = (
-  change: TupleChange,
-  initialLevelDirection: LevelDirection,
-) =>
-  levelDirection(change) !== "same" &&
-  levelDirection(change) === initialLevelDirection;
+const isSafeReport = (report: Report): boolean =>
+  isSafeSequence(report, isIncreasing) || isSafeSequence(report, isDecreasing);
 
-const isSafeReport = (report: Report) => {
-  const changes: TupleChange[] = report.slice(1).map((level: Level, index) => {
-    const previousLevel = report[index];
-    return [previousLevel, level];
-  });
+const removeIndex = (report: Report, index: number): Report => [
+  ...report.slice(0, index),
+  ...report.slice(index + 1),
+];
 
-  const initialLevelDirection = levelDirection(changes[0]);
+const isSafeReportWithDampener = (report: Report): boolean => {
+  if (isSafeReport(report)) return true;
 
-  return changes.every(
-    (change) =>
-      isSameAndCorrectDirection(change, initialLevelDirection) &&
-      isRateOfChangeAcceptable(change),
-  );
+  for (let i = 0; i < report.length; i++) {
+    if (isSafeReport(removeIndex(report, i))) return true;
+  }
+
+  return false;
 };
 
 run(__filename, solve);
