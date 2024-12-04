@@ -5,7 +5,8 @@
   "scripts": {
     "day1": "ts-node puzzles/aoc2401.ts",
     "day2": "ts-node puzzles/aoc2402.ts",
-    "day3": "ts-node puzzles/aoc2403.ts"
+    "day3": "ts-node puzzles/aoc2403.ts",
+    "day4": "ts-node puzzles/aoc2404.ts"
   },
   "keywords": [],
   "author": "",
@@ -22,6 +23,6 @@
     "typescript-eslint": "^8.16.0"
   },
   "dependencies": {
-    "aoc-copilot": "^1.6.1"
+    "aoc-copilot": "^1.6.2"
   }
 }
